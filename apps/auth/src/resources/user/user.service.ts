@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { User } from 'types';
+import { TaskUser, User } from 'types';
 import { userSchema } from 'schemas';
 import { DATABASE_DOCUMENTS } from 'app-constants';
 
@@ -27,7 +27,7 @@ const privateFields = [
   'resetPasswordToken',
 ];
 
-const getPublic = (user: User | null) => _.omit(user, privateFields);
+const getPublic = (user: User | TaskUser | null) => _.omit(user, privateFields);
 
 export default Object.assign(service, {
   updateLastRequest,
