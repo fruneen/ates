@@ -1,3 +1,0 @@
-name: ates
-runtime: nodejs
-description: Infrastructure as Code tool based on Pulumi for Digital Ocean Apps
