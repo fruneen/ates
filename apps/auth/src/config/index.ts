@@ -14,6 +14,7 @@ const schema = z.object({
   WEB_URL: z.string(),
   MONGO_URI: z.string(),
   MONGO_DB_NAME: z.string(),
+  JWT_SECRET_KEY: z.string(),
 });
 
 type Config = z.infer<typeof schema>;
