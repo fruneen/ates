@@ -1,0 +1,73 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "description": "Koa.js API",
+  "author": "Paralect",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "lint": "tsc --noEmit && eslint \"**/*.ts\" --fix",
+    "dev": "NODE_ENV=development APP_ENV=development ts-node-dev --respawn --transpile-only src/app.ts",
+    "start": "ts-node src/app.ts",
+    "precommit": "lint-staged"
+  },
+  "dependencies": {
+    "@koa/cors": "4.0.0",
+    "@koa/multer": "3.0.2",
+    "@koa/router": "12.0.0",
+    "@paralect/node-mongo": "3.1.2",
+    "app-constants": "workspace:*",
+    "bcryptjs": "2.4.3",
+    "dotenv": "16.0.3",
+    "koa": "2.14.1",
+    "koa-bodyparser": "4.3.0",
+    "koa-compose": "4.1.0",
+    "koa-helmet": "6.1.0",
+    "koa-logger": "3.2.1",
+    "koa-mount": "4.0.0",
+    "koa-qs": "3.0.0",
+    "lodash": "4.17.21",
+    "module-alias": "2.2.2",
+    "moment": "2.29.4",
+    "moment-duration-format": "2.3.2",
+    "npm": "9.6.1",
+    "psl": "1.9.0",
+    "schemas": "workspace:*",
+    "types": "workspace:*",
+    "winston": "3.8.2",
+    "zod": "3.21.4"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "2.4.2",
+    "@types/koa": "2.13.5",
+    "@types/koa-bodyparser": "4.3.10",
+    "@types/koa-compose": "3.2.5",
+    "@types/koa-helmet": "6.0.4",
+    "@types/koa-logger": "3.1.2",
+    "@types/koa-mount": "4.0.2",
+    "@types/koa__cors": "3.3.1",
+    "@types/koa__multer": "2.0.4",
+    "@types/koa__router": "12.0.0",
+    "@types/lodash": "4.14.191",
+    "@types/module-alias": "2.0.1",
+    "@types/node": "18.15.1",
+    "@types/psl": "1.1.0",
+    "@typescript-eslint/eslint-plugin": "5.54.1",
+    "@typescript-eslint/parser": "5.54.1",
+    "eslint": "8.36.0",
+    "eslint-config-airbnb-base": "15.0.0",
+    "eslint-config-airbnb-typescript": "17.0.0",
+    "eslint-plugin-import": "2.27.5",
+    "eslint-plugin-tsc": "2.0.0",
+    "lint-staged": "13.2.0",
+    "npm-run-all": "4.1.5",
+    "ts-node": "10.9.1",
+    "ts-node-dev": "2.0.0",
+    "typescript": "4.9.5"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint --fix"
+    ]
+  }
+}
