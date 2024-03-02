@@ -29,16 +29,21 @@ eventBus.on(`${USERS}.created`, async ({ doc: user }: InMemoryEvent<User>) => {
   }
 });
 
-// eventBus.onUpdated(USERS, ['firstName', 'lastName'], async (data: InMemoryEvent<User>) => {
-//   try {
-//     const user = data.doc;
-//     const fullName = user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName;
-//
-//     await userService.atomic.updateOne(
-//       { _id: user._id },
-//       { $set: { fullName } },
-//     );
-//   } catch (err) {
-//     logger.error(`${USERS} onUpdated ['firstName', 'lastName'] handler error: ${err}`);
-//   }
-// });
+eventBus.onUpdated(USERS, ['email', 'firstName', 'lastName', 'role'], async ({ doc: user }: InMemoryEvent<User>) => {
+  try {
+    const event: Event = {
+      name: EventName.AccountUpdated,
+      data: userService.getPublic(user),
+    };
+
+    const producer = kafka.producer();
+
+    await producer.connect();
+    await producer.send({
+      topic: TopicName.AccountsStream,
+      messages: [{ value: JSON.stringify(event) }],
+    });
+  } catch (err) {
+    logger.error(`${USERS} onUpdated ['firstName', 'lastName'] handler error: ${err}`);
+  }
+});

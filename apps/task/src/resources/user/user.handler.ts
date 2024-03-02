@@ -39,7 +39,28 @@ const run = async () => {
             } else {
               logger.error(`[${event.name}]: An error occurred when parsing schema: ${parsedUserData.error.message}`);
             }
+
+            break;
           }
+
+          case EventName.AccountUpdated: {
+            const parsedUserData = await taskUserSchema.strip().safeParseAsync(userData);
+
+            if (parsedUserData.success) {
+              const user = parsedUserData.data;
+
+              await userService.updateOne(
+                { _id: user._id },
+                () => ({ role: user.role }),
+              );
+            } else {
+              logger.error(`[${event.name}]: An error occurred when parsing schema: ${parsedUserData.error.message}`);
+            }
+
+            break;
+          }
+
+          default: break;
         }
       }
     },
