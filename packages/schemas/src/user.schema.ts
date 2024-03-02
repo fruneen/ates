@@ -13,7 +13,7 @@ export const userSchema = dbSchema.extend({
 
   role: z.nativeEnum(UserRole).default(UserRole.EMPLOYEE),
 
-  lastRequest: z.date().optional(),
-}).strict();
+  lastRequest: z.coerce.date().optional(),
+});
 
 export const taskUserSchema = dbSchema.merge(userSchema.pick({ role: true }));
