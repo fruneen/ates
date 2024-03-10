@@ -1,15 +1,17 @@
 import Koa, { ParameterizedContext, Request, Next } from 'koa';
 import Router from '@koa/router';
 
-import { User } from './user.types';
+import { TaskUser, User } from './user.types';
 
 export * from 'enums';
 
+export * from './event.types';
+export * from './task.types';
 export * from './token.types';
 export * from './user.types';
 
 export type AppKoaContextState = {
-  user: User;
+  user: User | TaskUser;
   accessToken: string;
   isShadow: boolean | null;
 };
