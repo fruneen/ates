@@ -9,8 +9,9 @@ import { taskService } from 'resources/task';
 import { validateMiddleware } from 'middlewares';
 
 const schema = z.object({
+  title: z.string().min(1, 'Please enter title'),
   description: z.string().min(1, 'Please enter description'),
-  assigneeId: z.string().min(1, 'Please enter assigneeId'),
+  assigneePublicId: z.string().min(1, 'Please enter assigneeId'),
 });
 
 interface ValidatedData extends z.infer<typeof schema> {
@@ -18,9 +19,9 @@ interface ValidatedData extends z.infer<typeof schema> {
 }
 
 async function validator(ctx: AppKoaContext<ValidatedData>, next: Next) {
-  const { assigneeId } = ctx.validatedData;
+  const { assigneePublicId } = ctx.validatedData;
 
-  const assignee = await userService.findOne({ _id: assigneeId });
+  const assignee = await userService.findOne({ publicId: assigneePublicId });
 
   ctx.assertError(assignee, 'Assignee not found');
 
@@ -36,9 +37,10 @@ async function validator(ctx: AppKoaContext<ValidatedData>, next: Next) {
 
 
 async function handler(ctx: AppKoaContext<ValidatedData>) {
-  const { description, assignee } = ctx.validatedData;
+  const { title, description, assignee } = ctx.validatedData;
 
   ctx.body = await taskService.insertOne({
+    title,
     description,
     assignee: _.pick(assignee, ['_id', 'role']),
   });

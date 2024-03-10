@@ -42,7 +42,7 @@ async function handler(ctx: AppKoaContext<ValidatedData>) {
 
   await userService.updateLastRequest(user._id);
 
-  const { value: token } = await tokenService.createToken(user._id);
+  const { value: token } = await tokenService.createToken(user._id, user.publicId);
 
   ctx.body = { token };
 }

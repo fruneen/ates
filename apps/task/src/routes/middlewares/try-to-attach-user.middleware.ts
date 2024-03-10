@@ -10,15 +10,15 @@ const tryToAttachUser = async (ctx: AppKoaContext, next: Next) => {
 
   if (token) {
     try {
-      const response = await axios.get<{ userId: string }>(`${config.AUTH_URL}/account/verify-token?token=${token}`);
+      const response = await axios.get<{ userPublicId: string }>(`${config.AUTH_URL}/account/verify-token?token=${token}`);
 
-      const userId = response.data?.userId;
+      const publicId = response.data?.userPublicId;
 
-      if (userId) {
-        let user = await userService.findOne({ _id: userId });
+      if (publicId) {
+        let user = await userService.findOne({ publicId });
 
         if (!user) {
-          user = await userService.insertOne({ _id: userId });
+          user = await userService.insertOne({ publicId });
         }
 
         if (user) {

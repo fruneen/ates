@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
 
 import { AppKoaContext, Next, AppRouter, UserRole } from 'types';
 import { EMAIL_REGEX, PASSWORD_REGEX } from 'app-constants';
@@ -43,6 +44,7 @@ async function handler(ctx: AppKoaContext<ValidatedData>) {
   const hash = await securityUtil.getHash(password);
 
   const user = await userService.insertOne({
+    publicId: uuidv4(),
     firstName,
     lastName,
     email,
@@ -50,7 +52,7 @@ async function handler(ctx: AppKoaContext<ValidatedData>) {
     role,
   });
 
-  const { value: token } = await tokenService.createToken(user._id);
+  const { value: token } = await tokenService.createToken(user._id, user.publicId);
 
   ctx.body = { token };
 }

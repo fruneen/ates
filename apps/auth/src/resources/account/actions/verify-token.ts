@@ -22,29 +22,31 @@ async function handler(ctx: AppKoaContext<ValidatedData>) {
   let tokenPayload;
 
   try {
-    tokenPayload = jwt.verify(inputToken, config.JWT_SECRET_KEY) as { userId: string };
+    tokenPayload = jwt.verify(inputToken, config.JWT_SECRET_KEY) as { userPublicId: string };
   } catch (error) {
     logger.debug(error);
     ctx.throw(401);
   }
 
-  if (!tokenPayload?.userId) {
+  if (!tokenPayload?.userPublicId) {
     ctx.throw(401);
   }
 
+  const user = await userService.findOne({ publicId: tokenPayload.userPublicId });
 
-  const [user, token] = await Promise.all([
-    userService.findOne({ _id: tokenPayload.userId }),
-    tokenService.findOne({ value: inputToken, userId: tokenPayload.userId }),
-  ]);
-
-  if (!user || !token) {
+  if (!user) {
     ctx.throw(401);
-
   }
-  await userService.updateLastRequest(tokenPayload.userId);
 
-  ctx.body = { userId: user._id };
+  const token = await tokenService.findOne({ value: inputToken, userId: user._id });
+
+  if (!token) {
+    ctx.throw(401);
+  }
+
+  await userService.updateLastRequest(tokenPayload.userPublicId);
+
+  ctx.body = { userPublicId: user.publicId };
 }
 
 export default (router: AppRouter) => {

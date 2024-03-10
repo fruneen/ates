@@ -22,6 +22,7 @@ const updateLastRequest = (_id: string) => {
 };
 
 const privateFields = [
+  '_id',
   'passwordHash',
   'signupToken',
   'resetPasswordToken',

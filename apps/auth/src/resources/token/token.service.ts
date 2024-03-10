@@ -15,8 +15,8 @@ const service = db.createService<Token>(DATABASE_DOCUMENTS.TOKENS, {
 
 service.createIndex({ 'createdOn': 1 }, { expireAfterSeconds: JWT_EXPIRATION_SECONDS });
 
-const createToken = async (userId: string, type: TokenType = TokenType.ACCESS ) => {
-  const value = jwt.sign({ userId }, config.JWT_SECRET_KEY, { expiresIn: JWT_EXPIRATION_SECONDS });
+const createToken = async (userId: string, userPublicId: string, type: TokenType = TokenType.ACCESS ) => {
+  const value = jwt.sign({ userPublicId }, config.JWT_SECRET_KEY, { expiresIn: JWT_EXPIRATION_SECONDS });
 
   return service.insertOne({
     type,

@@ -21,51 +21,60 @@ const run = async () => {
 
   await consumer.run({
     autoCommit: true,
-    eachMessage: async ({ topic, partition, message }) => {
-      const prefix = `${topic}[${partition} | ${message.offset}] / ${message.timestamp}`;
-      logger.debug(`- ${prefix} ${message.key}#${message.value}`);
+    eachBatch: async ({
+      batch,
+      resolveOffset,
+      heartbeat,
+    }) => {
+      logger.info(`Count of messages: ${batch.messages.length}`);
+      for (const message of batch.messages) {
+        const prefix = `${batch.topic}[${batch.partition} | ${message.offset}] / ${message.timestamp}`;
+        logger.debug(`- ${prefix} ${message.key}#${message.value}`);
 
-      if (message.value) {
-        const event: Event = JSON.parse(message.value as unknown as string) as Event;
+        if (message.value) {
+          const event: Event = JSON.parse(message.value as unknown as string) as Event;
 
-        const userData = event.data;
+          const userData = event.data;
 
-        switch (event.name) {
-          case EventName.AccountCreated: {
-            const parsedUserData = await taskUserSchema.strip().safeParseAsync(userData);
+          switch (event.name) {
+            case EventName.AccountCreated: {
+              const parsedUserData = await taskUserSchema.omit({ _id: true }).strip().safeParseAsync(userData);
 
-            if (parsedUserData.success) {
-              await userService.insertOne(_.pick(parsedUserData.data, ['_id', 'role']));
-            } else {
-              logger.error(`[${event.name}]: An error occurred when parsing schema: ${parsedUserData.error.message}`);
+              if (parsedUserData.success) {
+                await userService.insertOne(_.pick(parsedUserData.data, ['publicId', 'role']));
+              } else {
+                logger.error(`[${event.name}]: An error occurred when parsing schema: ${parsedUserData.error.message}`);
+              }
+
+              break;
             }
 
-            break;
-          }
+            case EventName.AccountUpdated: {
+              const parsedUserData = await taskUserSchema.omit({ _id: true }).strip().safeParseAsync(userData);
 
-          case EventName.AccountUpdated: {
-            const parsedUserData = await taskUserSchema.strip().safeParseAsync(userData);
+              if (parsedUserData.success) {
+                const user = parsedUserData.data;
 
-            if (parsedUserData.success) {
-              const user = parsedUserData.data;
+                await userService.updateOne(
+                  { publicId: user.publicId },
+                  () => ({ role: user.role }),
+                );
+              } else {
+                logger.error(`[${event.name}]: An error occurred when parsing schema: ${parsedUserData.error.message}`);
+              }
 
-              await userService.updateOne(
-                { _id: user._id },
-                () => ({ role: user.role }),
-              );
-            } else {
-              logger.error(`[${event.name}]: An error occurred when parsing schema: ${parsedUserData.error.message}`);
+              break;
             }
 
-            break;
+            default: break;
           }
-
-          default: break;
         }
+
+        resolveOffset(message.offset);
+        await heartbeat();
       }
     },
   });
-
 };
 
 run().catch(e => logger.error(`[task-service/consumer] ${e.message}`, e));
