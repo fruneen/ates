@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
 
 import { AppKoaContext, Next, AppRouter, UserRole, TaskUser } from 'types';
 
@@ -40,9 +41,10 @@ async function handler(ctx: AppKoaContext<ValidatedData>) {
   const { title, description, assignee } = ctx.validatedData;
 
   ctx.body = await taskService.insertOne({
+    publicId: uuidv4(),
     title,
     description,
-    assignee: _.pick(assignee, ['_id', 'role']),
+    assignee: _.pick(assignee, ['publicId', 'role']),
   });
 }
 

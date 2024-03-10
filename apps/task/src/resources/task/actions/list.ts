@@ -6,7 +6,7 @@ async function handler(ctx: AppKoaContext) {
   const { user } = ctx.state;
 
   ctx.body = await taskService.find({
-    'assignee._id': user._id,
+    'assignee.publicId': user.publicId,
   });
 }
 

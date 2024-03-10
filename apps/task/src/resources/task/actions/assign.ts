@@ -48,7 +48,7 @@ async function handler(ctx: AppKoaContext) {
     await Promise.all(userTasks.map(async task => {
       await taskService.updateOne(
         { _id: task._id },
-        () => ({ assignee: _.pick(user, ['_id', 'role']) }),
+        () => ({ assignee: _.pick(user, ['publicId', 'role']) }),
       );
     }));
   }
@@ -60,7 +60,7 @@ async function handler(ctx: AppKoaContext) {
     // Update a task with new assignee in the database
     await taskService.updateOne(
       { _id: remainingTasks[i]._id },
-      () => ({ assignee: _.pick(user, ['_id', 'role']) }),
+      () => ({ assignee: _.pick(user, ['publicId', 'role']) }),
     );
   }
 

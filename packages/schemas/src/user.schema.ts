@@ -22,3 +22,13 @@ export const taskUserSchema = dbSchema.merge(userSchema.pick({
   publicId: true,
   role: true,
 }));
+
+export const accountingUserSchema = dbSchema.merge(userSchema
+  .pick({
+    publicId: true,
+    role: true,
+  })
+  .extend({
+    balance: z.number().positive().default(0),
+  }),
+);

@@ -1,17 +1,19 @@
 import Koa, { ParameterizedContext, Request, Next } from 'koa';
 import Router from '@koa/router';
 
-import { TaskUser, User } from './user.types';
+import { AccountingUser, TaskUser, User } from './user.types';
 
 export * from 'enums';
 
+export * from './billing-cycle.types';
 export * from './event.types';
 export * from './task.types';
 export * from './token.types';
+export * from './transaction.types';
 export * from './user.types';
 
 export type AppKoaContextState = {
-  user: User | TaskUser;
+  user: User | TaskUser | AccountingUser;
   accessToken: string;
   isShadow: boolean | null;
 };
