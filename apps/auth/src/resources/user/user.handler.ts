@@ -28,22 +28,3 @@ eventBus.on(`${USERS}.created`, async ({ doc: user }: InMemoryEvent<User>) => {
     logger.error(`${USERS}.created handler error: ${err}`);
   }
 });
-
-eventBus.onUpdated(USERS, ['email', 'firstName', 'lastName', 'role'], async ({ doc: user }: InMemoryEvent<User>) => {
-  try {
-    const event: Event = {
-      name: EventName.AccountUpdated,
-      data: userService.getPublic(user),
-    };
-
-    const producer = kafka.producer();
-
-    await producer.connect();
-    await producer.send({
-      topic: TopicName.AccountsStream,
-      messages: [{ value: JSON.stringify(event) }],
-    });
-  } catch (err) {
-    logger.error(`${USERS} onUpdated ['firstName', 'lastName'] handler error: ${err}`);
-  }
-});

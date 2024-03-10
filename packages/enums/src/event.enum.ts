@@ -1,7 +1,6 @@
 export enum EventName {
   // Account
   AccountCreated = 'account_created',
-  AccountUpdated = 'account_updated',
 
   // Task
   TaskCreated = 'task_created',

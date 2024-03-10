@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "properties": {
+    "publicId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "title": {
+      "type": "string",
+      "pattern": ".*[\\[\\]].*"
+    },
+    "jiraId": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["TaskStatus"]
+    },
+    "assignee": {
+      "type": "object",
+      "properties": {
+        "publicId": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "required": ["publicId", "role"]
+    },
+    "createdOn": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["publicId", "title", "jiraId", "description", "status", "assignee", "createdOn"]
+}

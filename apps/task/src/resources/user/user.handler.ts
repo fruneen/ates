@@ -49,23 +49,6 @@ const run = async () => {
               break;
             }
 
-            case EventName.AccountUpdated: {
-              const parsedUserData = await taskUserSchema.omit({ _id: true }).strip().safeParseAsync(userData);
-
-              if (parsedUserData.success) {
-                const user = parsedUserData.data;
-
-                await userService.updateOne(
-                  { publicId: user.publicId },
-                  () => ({ role: user.role }),
-                );
-              } else {
-                logger.error(`[${event.name}]: An error occurred when parsing schema: ${parsedUserData.error.message}`);
-              }
-
-              break;
-            }
-
             default: break;
           }
         }

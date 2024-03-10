@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "properties": {
+    "_id": {
+      "type": "string"
+    },
+    "userPublicId": {
+      "type": "string"
+    },
+    "amount": {
+      "type": "number"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["enrollment", "withdrawal", "payment"]
+    },
+    "operation": {
+      "type": "string",
+      "enum": ["credit", "debit"]
+    },
+    "task": {
+      "type": "object",
+      "properties": {
+        "publicId": {
+          "type": "string"
+        },
+        "costs": {
+          "type": "number"
+        }
+      },
+      "required": ["publicId", "costs"]
+    },
+    "createdOn": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["userPublicId", "amount", "type", "operation", "task", "createdOn"]
+}
