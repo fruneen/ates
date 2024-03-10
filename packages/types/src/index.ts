@@ -5,7 +5,6 @@ import { AccountingUser, TaskUser, User } from './user.types';
 
 export * from 'enums';
 
-export * from './billing-cycle.types';
 export * from './event.types';
 export * from './task.types';
 export * from './token.types';
