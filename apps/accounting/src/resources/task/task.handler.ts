@@ -43,7 +43,17 @@ const run = async () => {
                 const isTaskAlreadyExists = await taskService.exists({ publicId: parsedTask.data.publicId });
 
                 if (!isTaskAlreadyExists) {
-                  await taskService.insertOne(_.pick(parsedTask.data, ['publicId', 'description', 'assignee']));
+                  const task = await taskService.insertOne(_.pick(parsedTask.data, ['publicId', 'description', 'assignee']));
+
+                  await applyTransaction({
+                    amount: Math.floor(Math.random() * (20 - 10 + 1) + 10),
+                    type: TransactionType.ENROLLMENT,
+                    operation: TransactionOperation.DEBIT,
+                    metadata: {
+                      task: task,
+                      user: parsedTask.data.assignee,
+                    },
+                  });
                 }
               } else {
                 logger.error(`[${event.name}]: An error occurred when parsing schema: ${parsedTask.error.message}`);

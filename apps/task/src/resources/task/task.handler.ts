@@ -29,25 +29,6 @@ eventBus.on(`${TASKS}.created`, async ({ doc: task }: InMemoryEvent<Task>) => {
   }
 });
 
-eventBus.on(`${TASKS}.created`, async ({ doc: task }: InMemoryEvent<Task>) => {
-  try {
-    const event: Event = {
-      name: EventName.TaskAssigned,
-      data: taskService.getPublic(task),
-    };
-
-    const producer = kafka.producer();
-
-    await producer.connect();
-    await producer.send({
-      topic: TopicName.TasksLifecycle,
-      messages: [{ value: JSON.stringify(event) }],
-    });
-  } catch (err) {
-    logger.error(`${TASKS}.created handler error: ${err}`);
-  }
-});
-
 eventBus.onUpdated(TASKS, ['assignee'], async ({ doc: task }: InMemoryEvent<Task>) => {
   try {
     const event: Event = {
