@@ -14,10 +14,11 @@
     "strict": true,
     "useUnknownInCatchVariables": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*",
-    "src/**/*.json"
+    "src/**/*.json",
+    ".eslintrc.js"
   ],
 }

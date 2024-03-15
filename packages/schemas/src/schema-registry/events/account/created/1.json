@@ -1,0 +1,45 @@
+{
+  "type": "object",
+  "properties": {
+    "publicId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "firstName": {
+      "type": "string"
+    },
+    "lastName": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "employee",
+        "manager",
+        "admin"
+      ],
+      "default": "employee"
+    },
+    "lastRequest": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdOn": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedOn": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "publicId",
+    "firstName",
+    "lastName",
+    "email"
+  ]
+}
