@@ -1,13 +1,17 @@
+import { eventBus, InMemoryEvent } from '@paralect/node-mongo';
 import _ from 'lodash';
 
 import { taskService } from 'resources/task';
+import { applyTransaction } from 'resources/transaction';
 
-import { Event, EventName, TopicName, TransactionOperation, TransactionType } from 'types';
+import { AccountingTask, Event, EventName, TopicName, TransactionOperation, TransactionType } from 'types';
+import { DATABASE_DOCUMENTS } from 'app-constants';
 import { taskSchema } from 'schemas';
 
 import logger from 'logger';
 import kafka from 'kafka';
-import { applyTransaction } from '../transaction';
+
+const { TASKS } = DATABASE_DOCUMENTS;
 
 const consumer = kafka.consumer({ groupId: 'accounting-service-group', maxWaitTimeInMs: 100 });
 
@@ -128,6 +132,26 @@ const run = async () => {
 };
 
 run().catch(e => logger.error(`[accounting-service/consumer] ${e.message}`, e));
+
+// when we create a task in accounting service, we add price for a task, which can be needed in another service
+eventBus.on(`${TASKS}.created`, async ({ doc: task }: InMemoryEvent<AccountingTask>) => {
+  try {
+    const event: Event = {
+      name: EventName.TaskUpdated,
+      data: taskService.getPublic(task),
+    };
+
+    const producer = kafka.producer();
+
+    await producer.connect();
+    await producer.send({
+      topic: TopicName.TasksStream,
+      messages: [{ value: JSON.stringify(event) }],
+    });
+  } catch (err) {
+    logger.error(`${TASKS}.created handler error: ${err}`);
+  }
+});
 
 const errorTypes = ['unhandledRejection', 'uncaughtException'];
 const signalTraps = ['SIGTERM', 'SIGINT', 'SIGUSR2'];

@@ -4,7 +4,7 @@ import { TaskStatus } from 'enums';
 
 import dbSchema from './db.schema';
 
-import { taskUserSchema, accountingUserSchema } from './user.schema';
+import { taskUserSchema } from './user.schema';
 
 export const taskSchema = dbSchema.extend({
   publicId: z.string().uuid(),
@@ -18,7 +18,11 @@ export const taskSchema = dbSchema.extend({
 export const accountingTaskSchema = dbSchema.merge(taskSchema
   .pick({ publicId: true, description: true })
   .extend({
-    assignee: accountingUserSchema.pick({ publicId: true, role: true }),
+    assignee: taskUserSchema.pick({ publicId: true, role: true }),
     costs: z.number().positive().default(Math.floor(Math.random() * (40 - 20 + 1)) + 20),
   }),
 );
+
+export const analyticsTaskSchema = dbSchema
+  .merge(taskSchema.pick({ publicId: true, status: true, assignee: true }))
+  .merge(accountingTaskSchema.pick({ costs: true }));
