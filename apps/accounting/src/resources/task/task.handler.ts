@@ -6,7 +6,7 @@ import { applyTransaction } from 'resources/transaction';
 
 import { AccountingTask, Event, EventName, TopicName, TransactionOperation, TransactionType } from 'types';
 import { DATABASE_DOCUMENTS } from 'app-constants';
-import { taskSchema, schemaRegistry } from 'schemas';
+import { taskSchema, schemaRegistry, taskSchemaV1 } from 'schemas';
 
 import logger from 'logger';
 import kafka from 'kafka';
@@ -41,26 +41,57 @@ const run = async () => {
 
           switch (event.name) {
             case EventName.TaskCreated: {
-              const parsedTask = await taskSchema.strip().safeParseAsync(taskData);
+              switch (event.version) {
+                case 1: {
+                  const parsedTask = await taskSchemaV1.strip().safeParseAsync(taskData);
 
-              if (parsedTask.success) {
-                const isTaskAlreadyExists = await taskService.exists({ publicId: parsedTask.data.publicId });
+                  if (parsedTask.success) {
+                    const isTaskAlreadyExists = await taskService.exists({ publicId: parsedTask.data.publicId });
 
-                if (!isTaskAlreadyExists) {
-                  const task = await taskService.insertOne(_.pick(parsedTask.data, ['publicId', 'description', 'assignee']));
+                    if (!isTaskAlreadyExists) {
+                      const task = await taskService.insertOne(_.pick(parsedTask.data, ['publicId', 'description', 'assignee']));
 
-                  await applyTransaction({
-                    amount: Math.floor(Math.random() * (20 - 10 + 1) + 10),
-                    type: TransactionType.ENROLLMENT,
-                    operation: TransactionOperation.DEBIT,
-                    metadata: {
-                      task: task,
-                      user: parsedTask.data.assignee,
-                    },
-                  });
+                      await applyTransaction({
+                        amount: Math.floor(Math.random() * (20 - 10 + 1) + 10),
+                        type: TransactionType.ENROLLMENT,
+                        operation: TransactionOperation.DEBIT,
+                        metadata: {
+                          task: task,
+                          user: parsedTask.data.assignee,
+                        },
+                      });
+                    }
+                  } else {
+                    logger.error(`[${event.name} v1]: An error occurred when parsing schema: ${parsedTask.error.message}`);
+                  }
+
+                  break;
                 }
-              } else {
-                logger.error(`[${event.name}]: An error occurred when parsing schema: ${parsedTask.error.message}`);
+                case 2: {
+                  const parsedTask = await taskSchema.strip().safeParseAsync(taskData);
+
+                  if (parsedTask.success) {
+                    const isTaskAlreadyExists = await taskService.exists({ publicId: parsedTask.data.publicId });
+
+                    if (!isTaskAlreadyExists) {
+                      const task = await taskService.insertOne(_.pick(parsedTask.data, ['publicId', 'description', 'assignee']));
+
+                      await applyTransaction({
+                        amount: Math.floor(Math.random() * (20 - 10 + 1) + 10),
+                        type: TransactionType.ENROLLMENT,
+                        operation: TransactionOperation.DEBIT,
+                        metadata: {
+                          task: task,
+                          user: parsedTask.data.assignee,
+                        },
+                      });
+                    }
+                  } else {
+                    logger.error(`[${event.name} v2]: An error occurred when parsing schema: ${parsedTask.error.message}`);
+                  }
+
+                  break;
+                }
               }
 
               break;
