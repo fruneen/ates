@@ -6,7 +6,7 @@ import { applyTransaction } from 'resources/transaction';
 
 import { AccountingTask, Event, EventName, TopicName, TransactionOperation, TransactionType } from 'types';
 import { DATABASE_DOCUMENTS } from 'app-constants';
-import { taskSchema } from 'schemas';
+import { taskSchema, schemaRegistry } from 'schemas';
 
 import logger from 'logger';
 import kafka from 'kafka';
@@ -138,8 +138,16 @@ eventBus.on(`${TASKS}.created`, async ({ doc: task }: InMemoryEvent<AccountingTa
   try {
     const event: Event = {
       name: EventName.TaskUpdated,
+      version: 1,
       data: taskService.getPublic(task),
     };
+
+    const { valid, errors } = await schemaRegistry.validateEvent(event.data, event.name, event.version);
+
+    if (!valid) {
+      logger.error(`[Schema Registry] Schema is invalid for event ${event.name}: ${JSON.stringify(errors)}`);
+      return;
+    }
 
     const producer = kafka.producer();
 

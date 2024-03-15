@@ -4,6 +4,7 @@ import cron from 'scheduler/cron';
 import logger from 'logger';
 
 import { Event, EventName, TopicName } from 'types';
+import { schemaRegistry } from 'schemas';
 
 import kafka from 'kafka';
 
@@ -30,16 +31,27 @@ cron.on(schedule[process.env.APP_ENV], async () => {
 
     const events: Event[] = users.map((u) => ({
       name: EventName.PaymentCompleted,
+      version: 1,
       data: { userPublicId: u.publicId },
     }));
 
     const producer = kafka.producer();
 
     await producer.connect();
-    await producer.send({
-      topic: TopicName.PaymentLifecycle,
-      messages: events.map((e) => ({ value: JSON.stringify(e) })),
-    });
+
+    for (const event of events) {
+      const { valid, errors } = await schemaRegistry.validateEvent(event.data, event.name, event.version);
+
+      if (!valid) {
+        logger.error(`[Schema Registry] Schema is invalid for event ${event.name}: ${JSON.stringify(errors)}`);
+        return;
+      }
+
+      await producer.send({
+        topic: TopicName.PaymentLifecycle,
+        messages: [{ value: JSON.stringify(event) }],
+      });
+    }
   } catch (error) {
     logger.error(error);
   }

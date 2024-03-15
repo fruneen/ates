@@ -12,6 +12,7 @@ import {
   TransactionOperation,
   TransactionType,
 } from 'types';
+import { schemaRegistry } from 'schemas';
 
 import kafka from 'kafka';
 import db from 'db';
@@ -59,8 +60,16 @@ export const applyTransaction = async ({ amount, type, operation, metadata }: Ap
 
   const event: Event = {
     name: EventName.TransactionApplied,
+    version: 1,
     data: transaction,
   };
+
+  const { valid, errors } = await schemaRegistry.validateEvent(event.data, event.name, event.version);
+
+  if (!valid) {
+    logger.error(`[Schema Registry] Schema is invalid for event ${event.name}: ${JSON.stringify(errors)}`);
+    return;
+  }
 
   const producer = kafka.producer();
 

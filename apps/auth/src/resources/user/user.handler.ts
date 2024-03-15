@@ -19,7 +19,7 @@ eventBus.on(`${USERS}.created`, async ({ doc: user }: InMemoryEvent<User>) => {
       data: userService.getPublic(user),
     };
 
-    const { valid, errors } = await schemaRegistry.validateEvent(event.data, EventName.AccountCreated, 1);
+    const { valid, errors } = await schemaRegistry.validateEvent(event.data, event.name, event.version);
 
     if (!valid) {
       logger.error(`[Schema Registry] Schema is invalid for event ${event.name}: ${JSON.stringify(errors)}`);
