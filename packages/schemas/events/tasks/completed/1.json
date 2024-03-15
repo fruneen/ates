@@ -1,0 +1,36 @@
+{
+  "type": "object",
+  "properties": {
+    "publicId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["in_progress", "completed"]
+    },
+    "assignee": {
+      "type": "object",
+      "properties": {
+        "publicId": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "required": ["publicId", "role"]
+    },
+    "createdOn": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["publicId", "title", "description", "status", "assignee", "createdOn"]
+}

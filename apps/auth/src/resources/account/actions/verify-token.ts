@@ -46,7 +46,7 @@ async function handler(ctx: AppKoaContext<ValidatedData>) {
 
   await userService.updateLastRequest(tokenPayload.userPublicId);
 
-  ctx.body = { userPublicId: user.publicId };
+  ctx.body = { userPublicId: user.publicId, role: user.role };
 }
 
 export default (router: AppRouter) => {

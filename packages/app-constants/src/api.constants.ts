@@ -2,6 +2,8 @@ export const DATABASE_DOCUMENTS = {
   USERS: 'users',
   TOKENS: 'tokens',
   TASKS: 'tasks',
+  TRANSACTIONS: 'transactions',
+  BILLING_CYCLE: 'billing-cycle',
 };
 
 export const COOKIES = {
