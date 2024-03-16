@@ -4,6 +4,7 @@ import { userService } from 'resources/user';
 
 import { Event, EventName, TopicName, User } from 'types';
 import { DATABASE_DOCUMENTS } from 'app-constants';
+import { schemaRegistry } from 'schemas';
 
 import logger from 'logger';
 import kafka from 'kafka';
@@ -14,8 +15,16 @@ eventBus.on(`${USERS}.created`, async ({ doc: user }: InMemoryEvent<User>) => {
   try {
     const event: Event = {
       name: EventName.AccountCreated,
+      version: 1,
       data: userService.getPublic(user),
     };
+
+    const { valid, errors } = await schemaRegistry.validateEvent(event.data, event.name, event.version);
+
+    if (!valid) {
+      logger.error(`[Schema Registry] Schema is invalid for event ${event.name}: ${JSON.stringify(errors)}`);
+      return;
+    }
 
     const producer = kafka.producer();
 

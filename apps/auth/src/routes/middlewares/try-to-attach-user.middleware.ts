@@ -19,19 +19,10 @@ const tryToAttachUser = async (ctx: AppKoaContext, next: Next) => {
       logger.debug(error);
     }
 
-    console.log(tokenPayload);
-
     if (tokenPayload && tokenPayload.userPublicId) {
       const user = await userService.findOne({ publicId: tokenPayload.userPublicId });
-      console.log(user);
-      console.log({ value: accessToken, userId: user?._id });
-      const token = await tokenService.findOne({ value: accessToken, userId: user?._id });
-      console.log(token);
 
-      // const [user, token] = await Promise.all([
-      //   userService.findOne({ _id: tokenPayload.userId }),
-      //   tokenService.findOne({ value: accessToken, userId: tokenPayload.userId }),
-      // ]);
+      const token = await tokenService.findOne({ value: accessToken, userId: user?._id });
 
       if (user && token) {
         await userService.updateLastRequest(token.userId);

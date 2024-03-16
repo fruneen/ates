@@ -9,9 +9,11 @@
   },
   "dependencies": {
     "enums": "workspace:*",
+    "jsonschema": "1.4.1",
     "zod": "*"
   },
   "devDependencies": {
+    "@types/node": "*",
     "eslint": "*",
     "lint-staged": "*",
     "typescript": "*"

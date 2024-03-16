@@ -4,6 +4,7 @@ export enum EventName {
 
   // Task
   TaskCreated = 'task_created',
+  TaskUpdated = 'task_updated',
   TaskAssigned = 'task_assigned',
   TaskCompleted = 'task_completed',
 

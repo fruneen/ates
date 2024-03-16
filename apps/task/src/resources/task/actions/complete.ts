@@ -2,6 +2,8 @@ import { AppKoaContext, Next, AppRouter, TaskStatus, Event, EventName, TopicName
 
 import { taskService } from 'resources/task';
 
+import { schemaRegistry } from 'schemas';
+
 import kafka from 'kafka';
 
 type Request = {
@@ -30,8 +32,16 @@ async function handler(ctx: AppKoaContext<never, Request>) {
 
   const event: Event = {
     name: EventName.TaskCompleted,
+    version: 1,
     data: task,
   };
+
+  const { valid, errors } = await schemaRegistry.validateEvent(event.data, event.name, event.version);
+
+  if (!valid) {
+    logger.error(`[Schema Registry] Schema is invalid for event ${event.name}: ${JSON.stringify(errors)}`);
+    return;
+  }
 
   const producer = kafka.producer();
 
