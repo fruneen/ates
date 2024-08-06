@@ -1,13 +1,17 @@
+import { eventBus, InMemoryEvent } from '@paralect/node-mongo';
 import _ from 'lodash';
 
 import { taskService } from 'resources/task';
+import { applyTransaction } from 'resources/transaction';
 
-import { Event, EventName, TopicName, TransactionOperation, TransactionType } from 'types';
-import { taskSchema } from 'schemas';
+import { AccountingTask, Event, EventName, TopicName, TransactionOperation, TransactionType } from 'types';
+import { DATABASE_DOCUMENTS } from 'app-constants';
+import { taskSchema, schemaRegistry, taskSchemaV1 } from 'schemas';
 
 import logger from 'logger';
 import kafka from 'kafka';
-import { applyTransaction } from '../transaction';
+
+const { TASKS } = DATABASE_DOCUMENTS;
 
 const consumer = kafka.consumer({ groupId: 'accounting-service-group', maxWaitTimeInMs: 100 });
 
@@ -37,16 +41,57 @@ const run = async () => {
 
           switch (event.name) {
             case EventName.TaskCreated: {
-              const parsedTask = await taskSchema.strip().safeParseAsync(taskData);
+              switch (event.version) {
+                case 1: {
+                  const parsedTask = await taskSchemaV1.strip().safeParseAsync(taskData);
 
-              if (parsedTask.success) {
-                const isTaskAlreadyExists = await taskService.exists({ publicId: parsedTask.data.publicId });
+                  if (parsedTask.success) {
+                    const isTaskAlreadyExists = await taskService.exists({ publicId: parsedTask.data.publicId });
 
-                if (!isTaskAlreadyExists) {
-                  await taskService.insertOne(_.pick(parsedTask.data, ['publicId', 'description', 'assignee']));
+                    if (!isTaskAlreadyExists) {
+                      const task = await taskService.insertOne(_.pick(parsedTask.data, ['publicId', 'description', 'assignee']));
+
+                      await applyTransaction({
+                        amount: Math.floor(Math.random() * (20 - 10 + 1) + 10),
+                        type: TransactionType.ENROLLMENT,
+                        operation: TransactionOperation.DEBIT,
+                        metadata: {
+                          task: task,
+                          user: parsedTask.data.assignee,
+                        },
+                      });
+                    }
+                  } else {
+                    logger.error(`[${event.name} v1]: An error occurred when parsing schema: ${parsedTask.error.message}`);
+                  }
+
+                  break;
                 }
-              } else {
-                logger.error(`[${event.name}]: An error occurred when parsing schema: ${parsedTask.error.message}`);
+                case 2: {
+                  const parsedTask = await taskSchema.strip().safeParseAsync(taskData);
+
+                  if (parsedTask.success) {
+                    const isTaskAlreadyExists = await taskService.exists({ publicId: parsedTask.data.publicId });
+
+                    if (!isTaskAlreadyExists) {
+                      const task = await taskService.insertOne(_.pick(parsedTask.data, ['publicId', 'description', 'assignee']));
+
+                      await applyTransaction({
+                        amount: Math.floor(Math.random() * (20 - 10 + 1) + 10),
+                        type: TransactionType.ENROLLMENT,
+                        operation: TransactionOperation.DEBIT,
+                        metadata: {
+                          task: task,
+                          user: parsedTask.data.assignee,
+                        },
+                      });
+                    }
+                  } else {
+                    logger.error(`[${event.name} v2]: An error occurred when parsing schema: ${parsedTask.error.message}`);
+                  }
+
+                  break;
+                }
               }
 
               break;
@@ -118,6 +163,34 @@ const run = async () => {
 };
 
 run().catch(e => logger.error(`[accounting-service/consumer] ${e.message}`, e));
+
+// when we create a task in accounting service, we add price for a task, which can be needed in another service
+eventBus.on(`${TASKS}.created`, async ({ doc: task }: InMemoryEvent<AccountingTask>) => {
+  try {
+    const event: Event = {
+      name: EventName.TaskUpdated,
+      version: 1,
+      data: taskService.getPublic(task),
+    };
+
+    const { valid, errors } = await schemaRegistry.validateEvent(event.data, event.name, event.version);
+
+    if (!valid) {
+      logger.error(`[Schema Registry] Schema is invalid for event ${event.name}: ${JSON.stringify(errors)}`);
+      return;
+    }
+
+    const producer = kafka.producer();
+
+    await producer.connect();
+    await producer.send({
+      topic: TopicName.TasksStream,
+      messages: [{ value: JSON.stringify(event) }],
+    });
+  } catch (err) {
+    logger.error(`${TASKS}.created handler error: ${err}`);
+  }
+});
 
 const errorTypes = ['unhandledRejection', 'uncaughtException'];
 const signalTraps = ['SIGTERM', 'SIGINT', 'SIGUSR2'];
